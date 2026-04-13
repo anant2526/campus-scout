@@ -1,0 +1,83 @@
+##############################################################################
+# Campus Alert Agent — Scheduled GitHub Actions Workflow
+#
+# DESIGN DECISIONS:
+# 1. Runs on cron "0 */8 * * *" = 00:00, 08:00, 16:00 UTC daily (3x/day).
+# 2. Persists seen_results.json by committing it back to the repo after each
+#    run. This is more reliable than cache (which has a 7-day TTL and can be
+#    evicted). The commit is skipped if nothing changed, so the git history
+#    stays clean.
+# 3. timeout-minutes: 60 gives GitHub-level hard kill protection.
+# 4. workflow_dispatch allows manual trigger from the GitHub UI.
+# 5. All secrets are injected as environment variables — never hardcoded.
+##############################################################################
+
+name: Campus Alert Agent
+
+on:
+  schedule:
+    # Every 8 hours: midnight, 8 AM, 4 PM UTC
+    - cron: "0 */8 * * *"
+  workflow_dispatch:  # Manual trigger from GitHub UI
+
+permissions:
+  contents: write  # Needed to commit seen_results.json back to repo
+
+jobs:
+  check-opportunities:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+      ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
+    steps:
+      # ── 1. Checkout repository ──────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Python 3.11 ────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"  # Cache pip packages for faster installs
+
+      # ── 3. Install dependencies ─────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── 4. Ensure logs directory exists ─────────────────────────────────
+      - name: Create logs directory
+        run: mkdir -p logs
+
+      # ── 5. Run the agent ────────────────────────────────────────────────
+      - name: Run Campus Alert Agent
+        run: python src/main.py
+
+      # ── 6. Commit updated seen_results.json back to repo ───────────────
+      # This is how we persist duplicate-detection state across runs.
+      # If nothing changed, the commit is skipped gracefully.
+      - name: Persist seen results
+        if: always()  # Run even if the agent step failed partway
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_results.json
+          git diff --cached --quiet || git commit -m "chore: update seen_results.json [skip ci]"
+          git push
+        continue-on-error: true  # Don't fail the whole workflow if push fails
+
+      # ── 7. Upload logs as artifact ──────────────────────────────────────
+      - name: Upload run logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-logs-${{ github.run_id }}
+          path: logs/run.log
+          retention-days: 30

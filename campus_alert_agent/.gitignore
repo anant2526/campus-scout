@@ -1,0 +1,24 @@
+# ── Python ────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# ── Environment ──────────────────────────────────────
+.env
+.venv/
+venv/
+
+# ── Local artifacts (not needed in CI) ───────────────
+seen_alerts.db
+*.db
+logs/run.log
+
+# ── OS ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ──────────────────────────────────────────────
+.vscode/
+.idea/

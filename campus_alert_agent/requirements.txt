@@ -1,0 +1,7 @@
+# ── Core ──────────────────────────────────────────────────────────────────
+google-genai          # Google Gemini SDK (new SDK, replaces google-generativeai)
+requests              # HTTP client for scraping + Telegram/Slack APIs
+beautifulsoup4        # HTML parsing and text extraction
+
+# ── Optional (for local development only, not needed in CI) ──────────────
+python-dotenv         # Load .env file locally (GitHub Actions uses secrets)
