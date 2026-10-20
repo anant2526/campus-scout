@@ -1,12 +1,12 @@
 {
   "https://www.anthropic.com/careers": {
-    "content_hash": "a0f95a9235c0e33b1d1e89745b6c2fe9138e9732d0844d2b30af183c17052848",
+    "content_hash": "afe4dff2f7adda886d5113f17dcf5f6c630107ee5c26a9bdc40302ce2cda2e65",
     "first_seen": "2026-04-13T05:06:25.805787+00:00",
-    "last_checked": "2026-07-18T01:29:21.373221+00:00"
+    "last_checked": "2026-10-20T19:45:02.918787+00:00"
   },
   "https://www.anthropic.com/news": {
-    "content_hash": "e182e44296fd00a577dcbbea4f27658d5be1d1084967f707c01e679748641e2f",
+    "content_hash": "4c378dc65fa4a94333f32377e878c656fb78de901c17e1088c228cc401031874",
     "first_seen": "2026-04-13T05:06:06.229396+00:00",
-    "last_checked": "2026-10-18T18:22:02.409572+00:00"
+    "last_checked": "2026-10-20T19:44:48.329216+00:00"
   }
 }
